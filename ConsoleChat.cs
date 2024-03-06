@@ -2,6 +2,7 @@
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Utils;
+using System.Text.RegularExpressions;
 
 namespace ConsoleChat
 {
@@ -13,6 +14,8 @@ namespace ConsoleChat
 
         public List<string> BlackList = new List<string> { "recharge", "recast", "cooldown", "cool" };
 
+        int Countdown = 0;
+
         public override void Load(bool hotReload)
         {
             AddCommandListener("say", OnSayTest, HookMode.Pre);
@@ -22,14 +25,37 @@ namespace ConsoleChat
         {
             if (client == null)
             {
-                Server.PrintToChatAll($" {ChatColors.Red}CONSOLE:{ChatColors.Green} {info.ArgString}");
-                return HookResult.Handled;
-            }
+                if (!IsCountable(info.ArgString))
+                {
+                    Server.PrintToChatAll($" {ChatColors.Red}CONSOLE:{ChatColors.Green} {info.ArgString}");
+                    return HookResult.Handled;
+                }
+                else
+                {
+                    var gameRules = Utilities.FindAllEntitiesByDesignerName<CCSGameRulesProxy>("cs_gamerules").First().GameRules!;
 
+                    var timeleft = gameRules.RoundTime - (Server.CurrentTime - gameRules.RoundStartTime);
+
+                    if((Countdown > 5) && (timeleft > Countdown))
+                    {
+                        int triggerTime = (int)Math.Ceiling(timeleft - Countdown);
+
+                        if((int)timeleft - 0.5f == (int)timeleft)
+                        {
+                            triggerTime++;
+                        }
+
+                        var min = triggerTime / 60;
+                        var secs = triggerTime % 60;
+
+                        Server.PrintToChatAll($" {ChatColors.Red}CONSOLE:{ChatColors.Green} {info.ArgString} {ChatColors.Orange}[ {min}:{secs} ]");
+                        return HookResult.Handled;
+                    }
+                }
+            }
             return HookResult.Continue;
         }
 
-        /*
         bool CheckString(string str)
         {
             foreach (var blackword in BlackList)
@@ -42,46 +68,27 @@ namespace ConsoleChat
 
         public bool IsCountable(string message)
         {
-            string FilterText = "";
-            int filterPos = 0;
-            int ConsoleNumber;
-
-            bool isCountable = false;
-
-            for (int i = 0; i < message.Length; i++)
-            {
-                if (IsCharAlpha(message[i]) || IsCharNumeric(message[i]) || IsCharSpace(message[i]))
-                {
-                    FilterText += message[i];
-                    filterPos += 1;
-                }
-            }
-
-            FilterText += '\0';
-            FilterText = Regex.Replace(FilterText, @"\s", "");
-
             if (CheckString(message))
                 return false;
 
+            string[] exploded = message.Split(" ");
+            int number;
 
+            for(int i = 0; i < exploded.Length; i ++)
+            {
+                var isnumber = int.TryParse(exploded[i], out number);
+
+                if (isnumber)
+                {
+                    Countdown = number;
+                    var array = exploded[i + 1].ToCharArray();
+
+                    if (array[0] == 's')
+                        return true;
+                }
+            }
 
             return false;
         }
-
-        public bool IsCharAlpha(char array)
-        {
-            return array <= sbyte.MaxValue;
-        }
-
-        public bool IsCharNumeric(char array)
-        {
-            return char.IsNumber(array);
-        }
-
-        public bool IsCharSpace(char array)
-        {
-            return char.IsWhiteSpace(array);
-        }
-        */
     }
 }
