@@ -1,5 +1,4 @@
-﻿using System.Text.RegularExpressions;
-using CounterStrikeSharp.API;
+﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Utils;
@@ -17,8 +16,6 @@ namespace ConsoleChat
         public override void Load(bool hotReload)
         {
             AddCommandListener("say", OnSayTest, HookMode.Pre);
-
-
         }
 
         public HookResult OnSayTest(CBaseEntity? client, CommandInfo info)
@@ -32,6 +29,7 @@ namespace ConsoleChat
             return HookResult.Continue;
         }
 
+        /*
         bool CheckString(string str)
         {
             foreach (var blackword in BlackList)
@@ -84,5 +82,6 @@ namespace ConsoleChat
         {
             return char.IsWhiteSpace(array);
         }
+        */
     }
 }
