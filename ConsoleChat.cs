@@ -73,17 +73,41 @@ namespace ConsoleChat
 
             string[] exploded = message.Split(" ");
             int number;
+            bool isnumber = false;
 
-            for(int i = 0; i < exploded.Length; i ++)
+            for (int i = 0; i < exploded.Length; i ++)
             {
-                var isnumber = int.TryParse(exploded[i], out number);
+                var numberStr = "";
+
+                // if number and s has no space
+                for (int j = 0; j < exploded[i].Length; j++)
+                {
+                    if (int.TryParse(exploded[i].Substring(j, j), out int temp))
+                    {
+                        numberStr += exploded[i][j];
+
+                        if (exploded[i][j + 1] == 's')
+                        {
+                            isnumber = int.TryParse(numberStr, out number);
+
+                            if (!isnumber)
+                                return false;
+
+                            Countdown = number;
+                            return true;
+                        }
+                    }
+                }
+
+                // if number and 's' is separated and spaced out.
+                isnumber = int.TryParse(exploded[i], out number);
 
                 if (isnumber)
                 {
                     Countdown = number;
-                    var array = exploded[i + 1].ToCharArray();
+                    var nextarray = exploded[i + 1].ToCharArray();
 
-                    if (array[0] == 's')
+                    if (nextarray[0] == 's')
                         return true;
                 }
             }
